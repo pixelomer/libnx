@@ -769,8 +769,10 @@ int fcntl(int fd, int cmd, ...) {
         F_GETFL is implemented using a custom, non-whitelisted IOCTL, whereas
         F_SETFL is implemented using FIONBIO.
     */
-    if(cmd != F_GETFL && cmd != F_SETFL)
-        return EOPNOTSUPP;
+    if(cmd != F_GETFL && cmd != F_SETFL) {
+        errno = EOPNOTSUPP;
+        return -1;
+    }
 
     if (cmd == F_SETFL) {
 
