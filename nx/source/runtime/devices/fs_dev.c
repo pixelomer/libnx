@@ -1756,6 +1756,7 @@ static const error_map_t error_table[] =
   /* keep this list sorted! */
   { 0x202, ENOENT,          },
   { 0x402, EEXIST,          },
+  { 0x1002, ENOTEMPTY,      },
   { 0x2EE202, EINVAL,       },
   { 0x2EE602, ENAMETOOLONG, },
 };
@@ -1810,4 +1811,3 @@ fsdev_translate_error(Result error)
 Result fsdevGetLastResult(void) {
     return fsdev_last_result;
 }
-
