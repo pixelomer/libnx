@@ -977,6 +977,9 @@ fsdev_read_safe(struct _reent *r,
       return -1;
     }
 
+    if (bytes == 0)
+      break; /* EOF: a successful zero-byte read must not spin forever. */
+
     file->offset += bytes;
     bytesRead    += bytes;
     ptr          += bytes;
@@ -984,6 +987,25 @@ fsdev_read_safe(struct _reent *r,
   }
 
   return bytesRead;
+}
+
+/* Offset-based reads reuse the driver's ordinary read path with an independent
+ * cursor. No descriptor position is read, changed, or restored. The FsFile and
+ * access mode belong to this driver; callers never depend on their layout.
+ */
+ssize_t fsdevPread(int fd, void* buffer, size_t size, off_t offset)
+{
+  __handle* handle = __get_handle(fd);
+  if (!handle || !handle->fileStruct) { errno = EBADF; return -1; }
+  const devoptab_t* device = devoptab_list[handle->device];
+  if (!device || device->read_r != fsdev_read) { errno = ENOTSUP; return -1; }
+  if (offset < 0 || size > SSIZE_MAX || (uint64_t)size > INT64_MAX - offset) {
+    errno = EINVAL; return -1;
+  }
+  if (!buffer && size) { errno = EFAULT; return -1; }
+  const fsdev_file_t* file = handle->fileStruct;
+  fsdev_file_t cursor = { .fd = file->fd, .flags = file->flags, .offset = offset };
+  return fsdev_read(_REENT, &cursor, buffer, size);
 }
 
 /*! Update an open file's current offset

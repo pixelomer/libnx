@@ -93,3 +93,7 @@ Result fsdevUnmountAll(void);
 
 /// Retrieves the last native result code generated during a failed fsdev operation.
 Result fsdevGetLastResult(void);
+
+/// Reads an open fsdev descriptor at an explicit offset without changing its position.
+/// Returns bytes read, or -1 with errno set. Other devoptab drivers are unsupported.
+ssize_t fsdevPread(int fd, void* buffer, size_t size, off_t offset);
