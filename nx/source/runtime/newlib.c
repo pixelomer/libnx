@@ -10,6 +10,7 @@
 #include "../internal.h"
 #include "types.h"
 #include "runtime/env.h"
+#include "runtime/pthread.h"
 #include "arm/counter.h"
 #include "kernel/mutex.h"
 #include "kernel/condvar.h"
@@ -124,6 +125,13 @@ struct __pthread_t *__syscall_thread_self(void)
 {
     Thread* t = getThreadVars()->thread_ptr;
     return t ? (struct __pthread_t *)t : THRD_MAIN_HANDLE;
+}
+
+Handle pthreadGetNativeHandle(pthread_t thread)
+{
+    if (thread == THRD_MAIN_HANDLE)
+        return envGetMainThreadHandle();
+    return thread ? thread->thr.handle : INVALID_HANDLE;
 }
 
 void __syscall_thread_exit(void *value)
